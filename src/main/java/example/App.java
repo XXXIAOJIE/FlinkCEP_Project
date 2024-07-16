@@ -4,6 +4,10 @@ package example;
  * Hello world!
  *
  */
+import org.apache.flink.api.common.eventtime.Watermark;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkOutput;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
@@ -15,8 +19,11 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.flink.streaming.api.TimeCharacteristic.EventTime;
 
 public class App {
 
@@ -31,6 +38,13 @@ public class App {
         //BasicConfigurator.configure();
         // 设置执行环境
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setStreamTimeCharacteristic(EventTime);
+
+       /** WatermarkStrategy<TaxiRide> orderWatermarkStrategy = CustomWatermarkStrategy.<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(1))
+                .withTimestampAssigner((element, timestamp) ->
+                        element.getPickupDatetime(); // TODO that needs to be milliseconds not Data
+                );*/
+
 
         // 创建一个数据流
         DataStream<TaxiRide> yellowTaxiRides = env.readTextFile("/Users/xiaojiesun/tu/lunwen/prepare/yellow_tripdata_2024-01.csv")
@@ -41,7 +55,8 @@ public class App {
                         return new TaxiRide("yellow", Double.parseDouble(fields[0]), fields[1], fields[2],
                                 Double.parseDouble(fields[8]), Double.parseDouble(fields[16]), 0);
                     }
-                });
+                }); //.assignTimestampsAndWatermarks(orderWatermarkStrategy);
+
 
         // 读取绿色出租车数据流
         DataStream<TaxiRide> greenTaxiRides = env.readTextFile("/Users/xiaojiesun/tu/lunwen/prepare/green_tripdata_2024-01.csv")
