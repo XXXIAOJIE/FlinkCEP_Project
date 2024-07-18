@@ -30,36 +30,42 @@ public class App {
     public static void main(String[] args) throws Exception {
         //System.out.println("hello");
         DataStream<String> result1 = Taxi();
-        DataStream<String> result2 = Sensor();
+       // DataStream<String> result2 = Sensor();
     }
 
 
-    private static DataStream<String> Taxi() throws Exception {
+    static DataStream<String> Taxi() throws Exception {
         //BasicConfigurator.configure();
         // 设置执行环境
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setStreamTimeCharacteristic(EventTime);
 
-       /** WatermarkStrategy<TaxiRide> orderWatermarkStrategy = CustomWatermarkStrategy.<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(1))
+       /** WatermarkStrategy<TaxiRide> orderWatermarkStrategy = CustomWatermarkStrategy
+              * .<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(1))
                 .withTimestampAssigner((element, timestamp) ->
                         element.getPickupDatetime(); // TODO that needs to be milliseconds not Data
                 );*/
+        // 设置自定义的Watermark策略
+        WatermarkStrategy<TaxiRide> orderWatermarkStrategy = WatermarkStrategy
+                .<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(1))
+                .withTimestampAssigner((element, timestamp) ->
+                        element.getPickupDatetime().getTime());   //As far as I know getTime returns results in milliseconds
 
 
         // 创建一个数据流
-        DataStream<TaxiRide> yellowTaxiRides = env.readTextFile("/Users/xiaojiesun/tu/lunwen/prepare/yellow_tripdata_2024-01.csv")
-                .map(new MapFunction<>() {
+        DataStream<TaxiRide> yellowTaxiRides = env.readTextFile("data/yellow_tripdata_2020-05(5am-8am).csv")
+                .map(new MapFunction<String, TaxiRide>() {
                     @Override
                     public TaxiRide map(String value) throws ParseException {
                         String[] fields = value.split(",");
                         return new TaxiRide("yellow", Double.parseDouble(fields[0]), fields[1], fields[2],
                                 Double.parseDouble(fields[8]), Double.parseDouble(fields[16]), 0);
                     }
-                }); //.assignTimestampsAndWatermarks(orderWatermarkStrategy);
+                }).assignTimestampsAndWatermarks(orderWatermarkStrategy);
 
 
         // 读取绿色出租车数据流
-        DataStream<TaxiRide> greenTaxiRides = env.readTextFile("/Users/xiaojiesun/tu/lunwen/prepare/green_tripdata_2024-01.csv")
+        DataStream<TaxiRide> greenTaxiRides = env.readTextFile("data/green_tripdata_2020-05(5am-8am).csv")
                 .map(new MapFunction<String, TaxiRide>() {
                     @Override
                     public TaxiRide map(String value) throws ParseException {
@@ -67,7 +73,8 @@ public class App {
                         return new TaxiRide("green", Double.parseDouble(fields[0]), fields[1], fields[2],
                                 Double.parseDouble(fields[8]), Double.parseDouble(fields[16]), 0);
                     }
-                });
+                })
+                .assignTimestampsAndWatermarks(orderWatermarkStrategy);
 
         // 将模式应用到数据流
         DataStream<TaxiRide> allTaxiRides = yellowTaxiRides.union(greenTaxiRides);
@@ -103,7 +110,6 @@ public class App {
             }
         });
 
-        // 输出结果
         result.print();
 
         // 执行Flink作业

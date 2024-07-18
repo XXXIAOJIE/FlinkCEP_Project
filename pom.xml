@@ -46,9 +46,21 @@
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
+      <artifactId>flink-clients_${scala.binary.version}</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
       <artifactId>flink-core</artifactId>
       <version>${flink.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-test-utils_${scala.binary.version}</artifactId>
+      <version>${flink.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- SLF4J and Log4j -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -65,6 +77,12 @@
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
     </dependency>
+      <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.8.1</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 
   <build>
@@ -90,7 +108,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>example.App</mainClass>
+          <mainClass>example.AppTest</mainClass>
           <arguments>
             <argument>--add-opens</argument>
             <argument>java.base/java.lang=ALL-UNNAMED</argument>
