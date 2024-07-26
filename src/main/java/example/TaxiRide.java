@@ -11,6 +11,7 @@ public class TaxiRide {
     private double distance;
     private double totalAmount;
     private double congestion_surcharge;
+    public TaxiRide(){}
 
     public TaxiRide(String color, double vendorID, String pickupDatetime, String dropoffDatetime, double distance, double totalAmount,double congestion_surcharge) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -23,6 +24,9 @@ public class TaxiRide {
         this.congestion_surcharge = congestion_surcharge;
     }
 
+    public String toString(){
+        return color + pickupDatetime;
+    }
     public String getColor(){
         return color;
     }

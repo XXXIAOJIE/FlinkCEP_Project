@@ -31,6 +31,10 @@ public class App {
         //System.out.println("hello");
         DataStream<String> result1 = Taxi();
        // DataStream<String> result2 = Sensor();
+//        DataStream<Tuple2<KeyedDataPointGeneral, KeyedDataPointGeneral>> result = patternStream.flatSelect(new UDFs.GetResultTuple2());
+//
+//        result.flatMap(new LatencyLoggerT2(true));
+//        result.writeAsText(outputPath, FileSystem.WriteMode.OVERWRITE);
     }
 
 
@@ -78,7 +82,7 @@ public class App {
 
         // 将模式应用到数据流
         DataStream<TaxiRide> allTaxiRides = yellowTaxiRides.union(greenTaxiRides);
-
+        allTaxiRides.print();
         // 定义一个模式
         Pattern<TaxiRide, ?> pattern = Pattern.<TaxiRide>begin("start")
                 .where(new SimpleCondition<TaxiRide>() {
